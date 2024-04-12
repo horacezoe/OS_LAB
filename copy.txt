@@ -1,0 +1,5 @@
+nasm -f elf64 -g transmformer.asm -o transformer.o
+ld -g transformer -o transformer.o
+
+nasm -f -g elf32 transmformer.asm -o transformer.o
+ld -g -m  elf_i386  transformer.o -o transformer
