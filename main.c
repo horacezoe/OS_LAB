@@ -107,7 +107,7 @@ char* transNumToChar(int num);
 
 void printNum(int num) {
     char * temp = transNumToChar(num);
-    printWhite(temp,strlen(temp));
+    printWhite(temp,(int)strlen(temp));
     free(temp);
 }
 
@@ -485,9 +485,9 @@ void doLsWithParam(fileNode* current,char* path,char* preOuput){//这里是目�
         strcat(preOuput,"/");
         printWhite(preOuput,(int )strlen(preOuput));
         printWhite(" ",1);
-        printWhite(transNumToChar(current->dirNum),(int )strlen(transNumToChar(current->dirNum)));
+        printNum(current->dirNum);
         printWhite(" ",1);
-        printWhite(transNumToChar(current->fileNum),(int )strlen(transNumToChar(current->fileNum)));
+        printNum(current->fileNum);
         printWhite(":\n",strlen(":\n"));
     }else{
         strcat(preOuput,"/");
@@ -508,14 +508,14 @@ void doLsWithParam(fileNode* current,char* path,char* preOuput){//这里是目�
         if (temp->type == 0){
             printRed(temp->name,(int )strlen(temp->name));//注意这里要输出红色的
             printWhite(" ",1);
-            printWhite(transNumToChar(current->dirNum),(int )strlen(transNumToChar(current->dirNum)));
+            printNum(temp->dirNum);
             printWhite(" ",1);
-            printWhite(transNumToChar(current->fileNum),(int )strlen(transNumToChar(current->fileNum)));
+            printNum(temp->fileNum);
             printWhite("\n",strlen("\n"));
         }else{
             printWhite(temp->name,(int )strlen(temp->name));
             printWhite(" ",1);
-            printWhite(transNumToChar((int)temp->size),(int )strlen(transNumToChar((int)temp->size)));
+            printNum((int)temp->size);
             printWhite("\n",strlen("\n"));
         }
         temp = temp->sibling;
