@@ -1,0 +1,4 @@
+C:\WINDOWS\system32\wsl.exe --distribution Ubuntu-20.04 --exec /mnt/c/Users/Bruce/AppData/Local/Programs/CLion/bin/ttyfix /bin/bash -c "export CLION_IDE=TRUE && export CMAKE_COLOR_DIAGNOSTICS=ON && export JETBRAINS_IDE=TRUE && cd /home/horacezhu/OS/Lab2/cmake-build-debug && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /home/horacezhu/OS/Lab2 -B /home/horacezhu/OS/Lab2/cmake-build-debug"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/horacezhu/OS/Lab2/cmake-build-debug
