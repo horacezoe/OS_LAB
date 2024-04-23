@@ -32,7 +32,7 @@ typedef struct FileNode {
     struct FileNode *parent;   // parent node
     int fileNum; // 文件数
     int dirNum; // 目录数
-}fileNode;
+} fileNode;
 
 /**
  * FAT12文件系统结构
@@ -51,7 +51,7 @@ typedef struct FAT12 {
     u16 BPB_NumHeads;       // 磁头数
     u32 BPB_HiddenSec;      // 隐藏扇区数
     u32 BPB_TotSec32;       // 如果BPB_TotSec16是0，则在这里记录
-}BPB;
+} BPB;
 #pragma pack() // restore alignment
 
 /**
@@ -67,7 +67,6 @@ struct RootEntry {
     u16 fstCluster;
     u32 fileSize;
 };
-
 
 
 struct FileNode files[FILE_SYSTEM_SIZE]; // 最多1000个文件
@@ -88,6 +87,7 @@ void my_printWhite(char *str, int length); //打印
 void printRed(char *str, int length) {
     my_printRed(str, length);
 }
+
 void printWhite(char *str, int length) {
     my_printWhite(str, length);
 }
@@ -101,23 +101,23 @@ void getFAT12Info(FILE *fat12);
  * @param num
  * @return 数据区对应的簇号，还要乘512的那种
  */
-int GetCluster(FILE *fat12, int num) ;
+int GetCluster(FILE *fat12, int num);
 
-char* transNumToChar(int num);
+char *transNumToChar(int num);
 
 void printNum(int num) {
     if (num == 0) {
         printWhite("0", 1);
         return;
     }
-    char * temp = transNumToChar(num);
-    printWhite(temp,(int)strlen(temp));
+    char *temp = transNumToChar(num);
+    printWhite(temp, (int) strlen(temp));
     free(temp);
 }
 
-void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* current);
+void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode *current);
 
-void initFileNode(fileNode* node){
+void initFileNode(fileNode *node) {
     node->child = NULL;
     node->sibling = NULL;
     node->parent = NULL;
@@ -128,15 +128,14 @@ void initFileNode(fileNode* node){
     node->cluster = 0;
     node->fileNum = 0;
     node->dirNum = 0;
-    memset(node->name,0,20);
+    memset(node->name, 0, 20);
 }
 
 
-
-void ls(FILE *fat12,fileNode *current,char* input);
+void ls(FILE *fat12, fileNode *current, char *input);
 
 //通过回溯current的父节点，来得到current的路径
-char* getPath(fileNode*current);
+char *getPath(fileNode *current);
 
 // 当用户添加 -l 参数时，
 //1. 在路径名后，冒号前，另输出此目录下直接子目录和直接子文件的数目，两
@@ -146,26 +145,26 @@ char* getPath(fileNode*current);
 //之间用空格连接。这两个数字不添加特殊颜色
 //1. 不输出.和..目录的子目录和子文件数目
 //2. 若项为文件，输出文件的大小（以字节为单位）
-void doLsWithParam(fileNode* current,char* path,char* preOuput);
+void doLsWithParam(fileNode *current, char *path, char *preOuput);
 
-void doLsWithoutParam(fileNode *current,char* path,char* preOuput);
+void doLsWithoutParam(fileNode *current, char *path, char *preOuput);
 
-void cat(FILE *fat12,fileNode *current,char* input);
+void cat(FILE *fat12, fileNode *current, char *input);
 
-void freeNode(fileNode *node){
-    if (node->child!=NULL){
+void freeNode(fileNode *node) {
+    if (node->child != NULL) {
         freeNode(node->child);
     }
-    if (node->sibling!=NULL){
+    if (node->sibling != NULL) {
         freeNode(node->sibling);
     }
     free(node);
 }
 
-int main(){
+int main() {
     FILE *fat12 = fopen("a.img", "rb");//打开文件
     getFAT12Info(fat12);
-    fileNode *root = (fileNode *)malloc(sizeof(fileNode));
+    fileNode *root = (fileNode *) malloc(sizeof(fileNode));
     initFileNode(root);
     root->type = 0;
     root->size = 0;
@@ -178,7 +177,7 @@ int main(){
 
     while (1) {
         char input[50];
-        printWhite("请输入指令（ls或cat或exit）:",strlen("请输入指令（ls或cat或exit）:") );
+        printWhite("请输入指令（ls或cat或exit）:", strlen("请输入指令（ls或cat或exit）:"));
         //这里输入的指令是整串的，如ls -l /root/nju/software
         fgets(input, sizeof(input), stdin); // 读取一行输入
         // 删除换行符
@@ -200,7 +199,7 @@ int main(){
         } else if (strcmp(order, "cat") == 0) {
             cat(fat12, root, input);
         } else {
-            printWhite("输入指令错误\n",strlen("输入指令错误\n"));
+            printWhite("输入指令错误\n", strlen("输入指令错误\n"));
         }
         fflush(stdout);  // 清空输出缓冲区
     }
@@ -231,7 +230,7 @@ int GetCluster(FILE *fat12, int num) {
     }
 }
 
-void getFAT12Info(FILE *fat12){
+void getFAT12Info(FILE *fat12) {
     struct FAT12 *head_ptr = &header;
     fseek(fat12, 11, SEEK_SET);//将文件指针定位到文件开头
     fread(head_ptr, sizeof(header), 1, fat12);//读取文件头
@@ -244,21 +243,23 @@ void getFAT12Info(FILE *fat12){
     Pre_Sec = RsvSec + NumFATs * FATSz;//根目录前的扇区数
 }
 
-void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* current){
+void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode *current) {
     //这里模拟的是读入一个目录的过程，在遇到有子目录的情况下再递归读入其他文件和目录
     //在递归读入的时候建立树结构
     struct RootEntry rootEntry;
     struct RootEntry *rootEntry_ptr = &rootEntry;
     for (int i = 0; i < file_count; ++i) {//读取根目录下的文件
-        fseek(fat12,address * Bytes_Per_Sector + i*ENTRY_SIZE, SEEK_SET);
+        fseek(fat12, address * Bytes_Per_Sector + i * ENTRY_SIZE, SEEK_SET);
         fread(rootEntry_ptr, 1, ENTRY_SIZE, fat12);
         //处理rootEntry_ptr的数据
-        if (rootEntry_ptr->classification!=0x10 && rootEntry_ptr->classification!=0x20) {
+        if (rootEntry_ptr->classification != 0x10 && rootEntry_ptr->classification != 0x20) {
             continue;
         }
         int isFileOrDir = 1;
         for (int j = 0; j < 8; ++j) {
-            if ( rootEntry_ptr->name[j] != ' ' && (rootEntry_ptr->name[j]<'0'||('9'<rootEntry_ptr->name[j]&& rootEntry_ptr->name[j] <'A')||('Z'<rootEntry_ptr->name[j] && rootEntry_ptr->name[j] <'a')||'z'<rootEntry_ptr->name[j])) {
+            if (rootEntry_ptr->name[j] != ' ' &&
+                (rootEntry_ptr->name[j] < '0' || ('9' < rootEntry_ptr->name[j] && rootEntry_ptr->name[j] < 'A') ||
+                 ('Z' < rootEntry_ptr->name[j] && rootEntry_ptr->name[j] < 'a') || 'z' < rootEntry_ptr->name[j])) {
                 isFileOrDir = 0;
                 break;
             }
@@ -266,7 +267,7 @@ void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* cu
         if (!isFileOrDir)continue;
         if (rootEntry_ptr->classification == 0x10) {//是目录
             current->dirNum++;
-            fileNode *dir = (fileNode *)malloc(sizeof(fileNode));
+            fileNode *dir = (fileNode *) malloc(sizeof(fileNode));
             initFileNode(dir);
             dir->type = 0;
             dir->size = rootEntry_ptr->fileSize;
@@ -280,11 +281,11 @@ void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* cu
                 }
                 dir->name[j] = rootEntry_ptr->name[j];
             }
-            if(current->child == NULL){
+            if (current->child == NULL) {
                 current->child = dir;
-            }else{
+            } else {
                 fileNode *temp = current->child;
-                while(temp->sibling != NULL){
+                while (temp->sibling != NULL) {
                     temp = temp->sibling;
                 }
                 temp->sibling = dir;
@@ -293,7 +294,7 @@ void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* cu
                                  Bytes_Per_Sector / ENTRY_SIZE, dir);
         } else if (rootEntry_ptr->classification == 0x20) {//是文件
             current->fileNum++;
-            fileNode *file = (fileNode *)malloc(sizeof(fileNode));
+            fileNode *file = (fileNode *) malloc(sizeof(fileNode));
             initFileNode(file);
             file->type = 1;
             file->size = rootEntry_ptr->fileSize;
@@ -315,11 +316,11 @@ void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* cu
                 }
                 file->name[fileNameIdex++] = rootEntry_ptr->name[j];
             }
-            if(current->child == NULL){
+            if (current->child == NULL) {
                 current->child = file;
-            }else{
+            } else {
                 fileNode *temp = current->child;
-                while(temp->sibling != NULL){
+                while (temp->sibling != NULL) {
                     temp = temp->sibling;
                 }
                 temp->sibling = file;
@@ -328,7 +329,7 @@ void readAndConstructTree(FILE *fat12, int address, int file_count, fileNode* cu
     }
 }
 
-void ls(FILE *fat12,fileNode *current,char* input){
+void ls(FILE *fat12, fileNode *current, char *input) {
     //这里是ls的操作
     //这里要解析路径，然后根据路径找到对应的文件夹或文件
     //这里要注意的是路径是绝对路径，所以要从根目录开始找
@@ -340,302 +341,305 @@ void ls(FILE *fat12,fileNode *current,char* input){
     char *path = NULL;
     int hasPath = 0;
     int hasParam = 0;
-    char input_copy[sizeof (input)];
-    strcpy(input_copy,input);
-    strtok(input_copy," ");//消耗掉ls
-    char *temp = strtok(NULL," ");
-    while(temp!=NULL){
-        if (temp[0]=='-'){//说明是参数，参数能有多个
-            int len = (int)strlen(temp);//参数长度，下面用于判断“-”后是否只有“l”
+    char input_copy[sizeof(input)];
+    strcpy(input_copy, input);
+    strtok(input_copy, " ");//消耗掉ls
+    char *temp = strtok(NULL, " ");
+    while (temp != NULL) {
+        if (temp[0] == '-') {//说明是参数，参数能有多个
+            int len = (int) strlen(temp);//参数长度，下面用于判断“-”后是否只有“l”
             for (int i = 1; i < len; ++i) {
-                if (temp[i]!='l'){
-                    printWhite("ls输入了不支持的命令参数\n",strlen("ls输入了不支持的命令参数\n"));
+                if (temp[i] != 'l') {
+                    printWhite("ls输入了不支持的命令参数\n", strlen("ls输入了不支持的命令参数\n"));
                     return;
                 }
             }
             hasParam = 1;
-        } else if (temp[0] == '/'){//说明是路径，路径只能有一个
-            if (hasPath){
-                printWhite("ls输入了多个路径\n",strlen("ls输入了多个路径\n"));
+        } else if (temp[0] == '/') {//说明是路径，路径只能有一个
+            if (hasPath) {
+                printWhite("ls输入了多个路径\n", strlen("ls输入了多个路径\n"));
                 return;
             }
-            path = (char *)malloc(sizeof(temp));
-            strcpy(path,temp);
+            path = (char *) malloc(sizeof(temp));
+            strcpy(path, temp);
             hasPath = 1;
-        }else{
-            printWhite("ls输入了不能解析的内容\n",strlen("ls输入了不能解析的内容\n"));
+        } else {
+            printWhite("ls输入了不能解析的内容\n", strlen("ls输入了不能解析的内容\n"));
         }
-        temp = strtok(NULL," ");
+        temp = strtok(NULL, " ");
     }
-        char *preOutput = (char *)malloc(50);
+    char *preOutput = (char *) malloc(50);
 
 
     //输出部分
-    if (hasParam){
-        doLsWithParam(current,path,preOutput);
-    } else{
-        doLsWithoutParam(current,path,preOutput);
+    if (hasParam) {
+        doLsWithParam(current, path, preOutput);
+    } else {
+        doLsWithoutParam(current, path, preOutput);
     }
+    free(preOutput);
 
 }
 
-void cat(FILE *fat12,fileNode *current,char* input) {
+void cat(FILE *fat12, fileNode *current, char *input) {
     // 用户输入 cat 文件名 ，输出文件名对应文件的内容，若路径不存在或不是一个普通
     //文件则报错，给出提示，提示内容不做严格限定，但必须体现出错误所在。
     strtok(input, " ");
     char *path = strtok(NULL, " ");
-    char * FileOrDir = strtok(path, "/");
-    while(strchr(FileOrDir,'.')==NULL&& FileOrDir[0]!='.'){//此时说明是目录
-        if (strcmp(FileOrDir,"..")==0){
+    char *FileOrDir = strtok(path, "/");
+    while (strchr(FileOrDir, '.') == NULL && FileOrDir[0] != '.') {//此时说明是目录
+        if (strcmp(FileOrDir, "..") == 0) {
             current = current->parent;
-        }else if (strcmp(FileOrDir,".")==0){
+        } else if (strcmp(FileOrDir, ".") == 0) {
             current = current;
-        } else{//这里要匹配对应的目录
+        } else {//这里要匹配对应的目录
             //如果匹配到了就进入下一级目录,如果没有匹配到就报错
-            fileNode * temp;
+            fileNode *temp;
             temp = current->child;
-            while(temp!=NULL){
-                if(strcmp(temp->name,FileOrDir)==0){
+            while (temp != NULL) {
+                if (strcmp(temp->name, FileOrDir) == 0) {
                     current = temp;
                     break;
                 }
                 temp = temp->sibling;
             }
-            if (temp ==NULL){
-                printWhite("cat输入路径不存在\n",strlen("cat输入路径不存在\n"));
+            if (temp == NULL) {
+                printWhite("cat输入路径不存在\n", strlen("cat输入路径不存在\n"));
                 return;
             }
-            if (temp->type!=0){
-                printWhite("cat输入路径不是一个目录\n",strlen("cat输入路径不是一个目录\n"));
+            if (temp->type != 0) {
+                printWhite("cat输入路径不是一个目录\n", strlen("cat输入路径不是一个目录\n"));
                 return;
             }
             current = temp;
         }
-        FileOrDir=strtok(NULL,"/");
+        FileOrDir = strtok(NULL, "/");
     }
     //此时说明是文件
     fileNode *temp = current->child;
-    while(temp!=NULL){
-        if(strcmp(temp->name,FileOrDir)==0){
+    while (temp != NULL) {
+        if (strcmp(temp->name, FileOrDir) == 0) {
             current = temp;
             break;
         }
         temp = temp->sibling;
     }
-    if (temp ==NULL){
-        printWhite("cat的文件不存在\n",strlen("cat的文件不存在\n"));
+    if (temp == NULL) {
+        printWhite("cat的文件不存在\n", strlen("cat的文件不存在\n"));
         return;
     }
-    printWhite("\n",strlen("\n"));
+    printWhite("\n", strlen("\n"));
     //输出文件内容
     u16 cluster = current->cluster;
-    u16 nextCluster = GetCluster(fat12,cluster);
+    u16 nextCluster = GetCluster(fat12, cluster);
     u32 size = current->size;
-    while( size>0){
-        fseek(fat12, (RsvSec + NumFATs * FATSz + Root_Sec + (cluster - 2) ) * Bytes_Per_Sector, SEEK_SET);
-        char *buf = (char *)malloc(Bytes_Per_Sector);
+    while (size > 0) {
+        fseek(fat12, (RsvSec + NumFATs * FATSz + Root_Sec + (cluster - 2)) * Bytes_Per_Sector, SEEK_SET);
+        char *buf = (char *) malloc(Bytes_Per_Sector);
         fread(buf, 1, Bytes_Per_Sector, fat12);
-        if(size<Bytes_Per_Sector){
-            printWhite(buf,(int )size);
+        if (size < Bytes_Per_Sector) {
+            printWhite(buf, (int) size);
             size = 0;
             break;
         }
-        printWhite(buf,Bytes_Per_Sector);
+        printWhite(buf, Bytes_Per_Sector);
         size -= Bytes_Per_Sector;
         cluster = nextCluster;
-        nextCluster = GetCluster(fat12,cluster);
+        nextCluster = GetCluster(fat12, cluster);
     }
 }
 
-void doLsWithParam(fileNode* current,char* path,char* preOuput){//这里是目录，会递归调用
-    if (path != NULL){
+void doLsWithParam(fileNode *current, char *path, char *preOuput) {//这里是目录，会递归调用
+    if (path != NULL) {
         //这里进行path地址寻址
-        char * FileOrDir = strtok(path, "/");
-        while(FileOrDir!=NULL){//此时说明是目录
-            if (strcmp(FileOrDir,"..")==0){
+        char *FileOrDir = strtok(path, "/");
+        while (FileOrDir != NULL) {//此时说明是目录
+            if (strcmp(FileOrDir, "..") == 0) {
                 current = current->parent;
-            }else if (strcmp(FileOrDir,".")==0){
+            } else if (strcmp(FileOrDir, ".") == 0) {
                 current = current;
-            } else{//这里要匹配对应的目录
+            } else {//这里要匹配对应的目录
                 //如果匹配到了就进入下一级目录,如果没有匹配到就报错
-                fileNode * temp;
+                fileNode *temp;
                 temp = current->child;
-                while(temp!=NULL){
-                    if(strcmp(temp->name,FileOrDir)==0){
+                while (temp != NULL) {
+                    if (strcmp(temp->name, FileOrDir) == 0) {
                         current = temp;
                         break;
                     }
                     temp = temp->sibling;
                 }
-                if (temp ==NULL){
-                    printWhite("ls输入路径不存在\n",strlen("ls输入路径不存在\n"));
+                if (temp == NULL) {
+                    printWhite("ls输入路径不存在\n", strlen("ls输入路径不存在\n"));
                     return;
                 }
-                if (temp->type!=0){
-                    printWhite("ls输入路径不是一个目录\n",strlen("ls输入路径不是一个目录\n"));
+                if (temp->type != 0) {
+                    printWhite("ls输入路径不是一个目录\n", strlen("ls输入路径不是一个目录\n"));
                     return;
                 }
                 current = temp;
             }
-            FileOrDir=strtok(NULL,"/");
+            FileOrDir = strtok(NULL, "/");
         }
 
         //递归获得路径名
-        strcpy(preOuput,getPath(current));
+        strcpy(preOuput, getPath(current));
     }
 
 
-        strcat(preOuput,"/");
-        printWhite(preOuput,(int )strlen(preOuput));
-        printWhite(" ",1);
-        printNum(current->dirNum);
-        printWhite(" ",1);
-        printNum(current->fileNum);
-        printWhite(":\n",strlen(":\n"));
+    strcat(preOuput, "/");
+    printWhite(preOuput, (int) strlen(preOuput));
+    printWhite(" ", 1);
+    printNum(current->dirNum);
+    printWhite(" ", 1);
+    printNum(current->fileNum);
+    printWhite(":\n", strlen(":\n"));
 
-    if (strcmp(current->name,".")!=0){//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
-        printRed(".",(int )strlen("."));
+    if (strcmp(current->name, ".") != 0) {//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
+        printRed(".", (int) strlen("."));
         printWhite("\n", strlen("\n"));
-        printRed("..",(int )strlen(".."));
+        printRed("..", (int) strlen(".."));
         printWhite("\n", strlen("\n"));
     }
 
     //第一次遍历
     fileNode *temp = current->child;
-    while(temp!=NULL){
-        if (temp->type == 0){
-            printRed(temp->name,(int )strlen(temp->name));//注意这里要输出红色的
-            printWhite(" ",1);
+    while (temp != NULL) {
+        if (temp->type == 0) {
+            printRed(temp->name, (int) strlen(temp->name));//注意这里要输出红色的
+            printWhite(" ", 1);
             printNum(temp->dirNum);
-            printWhite(" ",1);
+            printWhite(" ", 1);
             printNum(temp->fileNum);
-            printWhite("\n",strlen("\n"));
-        }else{
-            printWhite(temp->name,(int )strlen(temp->name));
-            printWhite(" ",1);
-            printNum((int)temp->size);
-            printWhite("\n",strlen("\n"));
+            printWhite("\n", strlen("\n"));
+        } else {
+            printWhite(temp->name, (int) strlen(temp->name));
+            printWhite(" ", 1);
+            printNum((int) temp->size);
+            printWhite("\n", strlen("\n"));
         }
         temp = temp->sibling;
     }
-    printWhite("\n",strlen("\n"));
+    printWhite("\n", strlen("\n"));
 
 
     //第二次遍历
     temp = current->child;
-    while (temp!=NULL){
-        if (temp->type == 0){
-            char* preOuputCopy = (char *)malloc(sizeof(preOuput));
-            strcpy(preOuputCopy,preOuput);
-            doLsWithParam(temp,NULL,strcat(preOuputCopy,temp->name));
+    while (temp != NULL) {
+        if (temp->type == 0) {
+            char *preOuputCopy = (char *) malloc(sizeof(preOuput));
+            strcpy(preOuputCopy, preOuput);
+            doLsWithParam(temp, NULL, strcat(preOuputCopy, temp->name));
+            free(preOuputCopy);
         }
         temp = temp->sibling;
     }
     fflush(stdout);  // 清空输出缓冲区
-    free(preOuput);
 
 
 }
 
-void doLsWithoutParam(fileNode *current,char* path,char* preOuput){//这里是目录，会递归调用
-    if (path != NULL){
+void doLsWithoutParam(fileNode *current, char *path, char *preOuput) {//这里是目录，会递归调用
+    if (path != NULL) {
         //这里进行path地址寻址
-        char * FileOrDir = strtok(path, "/");
-        while(FileOrDir!=NULL){//此时说明是目录
-            if (strcmp(FileOrDir,"..")==0){
+        char *FileOrDir = strtok(path, "/");
+        while (FileOrDir != NULL) {//此时说明是目录
+            if (strcmp(FileOrDir, "..") == 0) {
                 current = current->parent;
-            }else if (strcmp(FileOrDir,".")==0){
+            } else if (strcmp(FileOrDir, ".") == 0) {
                 current = current;
-            }else{//这里要匹配对应的目录
+            } else {//这里要匹配对应的目录
                 //如果匹配到了就进入下一级目录,如果没有匹配到就报错
-                fileNode * temp;
+                fileNode *temp;
                 temp = current->child;
-                while(temp!=NULL){
-                    if(strcmp(temp->name,FileOrDir)==0){
+                while (temp != NULL) {
+                    if (strcmp(temp->name, FileOrDir) == 0) {
                         current = temp;
                         break;
                     }
                     temp = temp->sibling;
                 }
-                if (temp ==NULL){
-                    printWhite("ls输入路径不存在\n",strlen("ls输入路径不存在\n"));
+                if (temp == NULL) {
+                    printWhite("ls输入路径不存在\n", strlen("ls输入路径不存在\n"));
                     return;
                 }
-                if (temp->type!=0){
-                    printWhite("ls输入路径不是一个目录\n",strlen("ls输入路径不是一个目录\n"));
+                if (temp->type != 0) {
+                    printWhite("ls输入路径不是一个目录\n", strlen("ls输入路径不是一个目录\n"));
                     return;
                 }
                 current = temp;
             }
-            FileOrDir=strtok(NULL,"/");
+            FileOrDir = strtok(NULL, "/");
         }
         //递归获得路径名
-        strcpy(preOuput,getPath(current));
+        strcpy(preOuput, getPath(current));
     }
 
 
-        strcat(preOuput,"/");
-        printWhite(preOuput,(int )strlen(preOuput));
-        printWhite(":\n",strlen(":\n"));
+    strcat(preOuput, "/");
+    printWhite(preOuput, (int) strlen(preOuput));
+    printWhite(":\n", strlen(":\n"));
 
 
-    if (strcmp(current->name,".")!=0){//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
-        printRed(".  ",(int )strlen(".  "));
-        printRed("..  ",(int )strlen("..  "));
+    if (strcmp(current->name, ".") != 0) {//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
+        printRed(".", (int) strlen("."));
+        printWhite("  ", strlen("  "));
+        printRed("..", (int) strlen(".."));
+        printWhite("  ", strlen("  "));
     }
 
 
     //第一次遍历
     fileNode *temp = current->child;
-    while(temp!=NULL){
-        if (temp->type == 0){//注意这里要输出红色的
-            printRed(temp->name,(int )strlen(temp->name));
-            printWhite("  ",2);
-        }else{
-            printWhite(temp->name,(int )strlen(temp->name));
-            printWhite("  ",2);
+    while (temp != NULL) {
+        if (temp->type == 0) {//注意这里要输出红色的
+            printRed(temp->name, (int) strlen(temp->name));
+            printWhite("  ", 2);
+        } else {
+            printWhite(temp->name, (int) strlen(temp->name));
+            printWhite("  ", 2);
         }
         temp = temp->sibling;
     }
-    printWhite("\n",strlen("\n"));
+    printWhite("\n", strlen("\n"));
 
 
     //第二次遍历
     temp = current->child;
-    while (temp!=NULL){
-        if (temp->type == 0){
-            char* preOuputCopy = (char *)malloc(sizeof(preOuput));
-            strcpy(preOuputCopy,preOuput);
-            doLsWithoutParam(temp,NULL,strcat(preOuputCopy,temp->name));
+    while (temp != NULL) {
+        if (temp->type == 0) {
+            char *preOuputCopy = (char *) malloc(sizeof(preOuput));
+            strcpy(preOuputCopy, preOuput);
+            doLsWithoutParam(temp, NULL, strcat(preOuputCopy, temp->name));
+            free(preOuputCopy);
         }
         temp = temp->sibling;
     }
     fflush(stdout);  // 清空输出缓冲区
-    free(preOuput);
 
 }
 
-char * getPath(fileNode*current){
-    char *path = (char *)malloc(50);
+char *getPath(fileNode *current) {
+    char *path = (char *) malloc(50);
     fileNode *temp = current;
-    if (temp->parent == temp){//说明是根目录，直接返回
+    if (temp->parent == temp) {//说明是根目录，直接返回
         return path;
     }
-    strcat(path,"/");
-    strcat(path,temp->name);
-    return strcat(getPath(temp->parent),path);
+    strcat(path, "/");
+    strcat(path, temp->name);
+    return strcat(getPath(temp->parent), path);
 }
 
-char* transNumToChar(int num){
-    char *str = (char *)malloc(20);
-    char *temp = (char *)malloc(20);
+char *transNumToChar(int num) {
+    char *str = (char *) malloc(20);
+    char *temp = (char *) malloc(20);
     int i = 0;
-    while(num!=0){
-        str[i++] = num%10 + '0';
-        num = num/10;
+    while (num != 0) {
+        str[i++] = num % 10 + '0';
+        num = num / 10;
     }
-    for (int j = i-1; j >= 0; --j) {
-        temp[j] = str[i-j-1];
+    for (int j = i - 1; j >= 0; --j) {
+        temp[j] = str[i - j - 1];
     }
     temp[i] = '\0';
     free(str);
