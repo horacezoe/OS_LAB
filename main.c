@@ -106,6 +106,10 @@ int GetCluster(FILE *fat12, int num) ;
 char* transNumToChar(int num);
 
 void printNum(int num) {
+    if (num == 0) {
+        printWhite("0", 1);
+        return;
+    }
     char * temp = transNumToChar(num);
     printWhite(temp,(int)strlen(temp));
     free(temp);
@@ -173,7 +177,7 @@ int main(){
     readAndConstructTree(fat12, Pre_Sec, Root_Entry_Cnt, root);
 
     while (1) {
-        char input[100];
+        char input[50];
         printWhite("请输入指令（ls或cat或exit）:",strlen("请输入指令（ls或cat或exit）:") );
         //这里输入的指令是整串的，如ls -l /root/nju/software
         fgets(input, sizeof(input), stdin); // 读取一行输入
@@ -363,7 +367,7 @@ void ls(FILE *fat12,fileNode *current,char* input){
         }
         temp = strtok(NULL," ");
     }
-        char *preOutput = (char *)malloc(100);
+        char *preOutput = (char *)malloc(50);
 
 
     //输出部分
@@ -480,8 +484,7 @@ void doLsWithParam(fileNode* current,char* path,char* preOuput){//这里是目�
         strcpy(preOuput,getPath(current));
     }
 
-    //如果是根目录
-    if (strcmp(current->name,".")==0){
+
         strcat(preOuput,"/");
         printWhite(preOuput,(int )strlen(preOuput));
         printWhite(" ",1);
@@ -489,11 +492,6 @@ void doLsWithParam(fileNode* current,char* path,char* preOuput){//这里是目�
         printWhite(" ",1);
         printNum(current->fileNum);
         printWhite(":\n",strlen(":\n"));
-    }else{
-        strcat(preOuput,"/");
-        printWhite(preOuput,(int )strlen(preOuput));
-        printWhite(":\n",strlen(":\n"));
-    }
 
     if (strcmp(current->name,".")!=0){//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
         printRed(".",(int )strlen("."));
@@ -575,16 +573,11 @@ void doLsWithoutParam(fileNode *current,char* path,char* preOuput){//这里是�
         strcpy(preOuput,getPath(current));
     }
 
-    //如果是根目录
-    if (strcmp(current->name,".")==0){
+
         strcat(preOuput,"/");
         printWhite(preOuput,(int )strlen(preOuput));
         printWhite(":\n",strlen(":\n"));
-    }else{
-        strcat(preOuput,"/");
-        printWhite(preOuput,(int )strlen(preOuput));
-        printWhite(":\n",strlen(":\n"));
-    }
+
 
     if (strcmp(current->name,".")!=0){//如果不是根目录，就要输出“.”和“..”，注意这里要输出红色的
         printRed(".  ",(int )strlen(".  "));
@@ -623,7 +616,7 @@ void doLsWithoutParam(fileNode *current,char* path,char* preOuput){//这里是�
 }
 
 char * getPath(fileNode*current){
-    char *path = (char *)malloc(100);
+    char *path = (char *)malloc(50);
     fileNode *temp = current;
     if (temp->parent == temp){//说明是根目录，直接返回
         return path;
@@ -634,8 +627,8 @@ char * getPath(fileNode*current){
 }
 
 char* transNumToChar(int num){
-    char *str = (char *)malloc(100);
-    char *temp = (char *)malloc(100);
+    char *str = (char *)malloc(20);
+    char *temp = (char *)malloc(20);
     int i = 0;
     while(num!=0){
         str[i++] = num%10 + '0';
