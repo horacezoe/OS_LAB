@@ -12,9 +12,7 @@ typedef unsigned short u16;
 typedef unsigned int u32;
 typedef unsigned char uchar;
 
-
-/************************** STRUCT DEFINITION ****************************/
-/*************************************************************************/
+//我的代码中解析路径相关功能重复了数次，可以封装成函数，减少代码行数;fileNode结构体中有数个字段没有起到作用，可以删去
 
 /**
  * File node
