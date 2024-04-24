@@ -162,7 +162,7 @@ void freeNode(fileNode *node) {
 }
 
 int main() {
-    FILE *fat12 = fopen("a.img", "rb");//打开文件
+    FILE *fat12 = fopen("lab2.img", "rb");//打开文件
     getFAT12Info(fat12);
     fileNode *root = (fileNode *) malloc(sizeof(fileNode));
     initFileNode(root);
@@ -341,7 +341,7 @@ void ls(FILE *fat12, fileNode *current, char *input) {
     char *path = NULL;
     int hasPath = 0;
     int hasParam = 0;
-    char input_copy[sizeof(input)];
+    char *input_copy = (char *) malloc(strlen(input) + 5);
     strcpy(input_copy, input);
     strtok(input_copy, " ");//消耗掉ls
     char *temp = strtok(NULL, " ");
@@ -360,16 +360,19 @@ void ls(FILE *fat12, fileNode *current, char *input) {
                 printWhite("ls输入了多个路径\n", strlen("ls输入了多个路径\n"));
                 return;
             }
-            path = (char *) malloc(sizeof(temp));
+            path = (char *) malloc(50);
             strcpy(path, temp);
             hasPath = 1;
         } else {
             printWhite("ls输入了不能解析的内容\n", strlen("ls输入了不能解析的内容\n"));
+            return;
         }
         temp = strtok(NULL, " ");
     }
-    char *preOutput = (char *) malloc(50);
 
+
+    char *preOutput = (char *) malloc(50);
+    strcpy(preOutput, "");
 
     //输出部分
     if (hasParam) {
@@ -378,7 +381,10 @@ void ls(FILE *fat12, fileNode *current, char *input) {
         doLsWithoutParam(current, path, preOutput);
     }
     free(preOutput);
-
+    free(input_copy);
+    if (path != NULL) {
+        free(path);
+    }
 }
 
 void cat(FILE *fat12, fileNode *current, char *input) {
@@ -386,7 +392,15 @@ void cat(FILE *fat12, fileNode *current, char *input) {
     //文件则报错，给出提示，提示内容不做严格限定，但必须体现出错误所在。
     strtok(input, " ");
     char *path = strtok(NULL, " ");
+    if (path==NULL){
+        printWhite("cat未输入路径\n", strlen("cat未输入路径\n"));
+        return;
+    }
     char *FileOrDir = strtok(path, "/");
+    if (FileOrDir == NULL || strlen(FileOrDir) == 0){
+        printWhite("cat输入路径不正确\n", strlen("cat输入路径不正确\n"));
+        return;
+    }
     while (strchr(FileOrDir, '.') == NULL && FileOrDir[0] != '.') {//此时说明是目录
         if (strcmp(FileOrDir, "..") == 0) {
             current = current->parent;
@@ -414,6 +428,12 @@ void cat(FILE *fat12, fileNode *current, char *input) {
             current = temp;
         }
         FileOrDir = strtok(NULL, "/");
+
+        //这块代码我是检查实验时出现段错误，检查结束后改的，离大谱，为什么不把样例给多一点
+        if (FileOrDir == NULL || strlen(FileOrDir) == 0){
+            printWhite("cat输入路径不正确\n", strlen("cat输入路径不正确\n"));
+            return;
+        }
     }
     //此时说明是文件
     fileNode *temp = current->child;
@@ -428,7 +448,7 @@ void cat(FILE *fat12, fileNode *current, char *input) {
         printWhite("cat的文件不存在\n", strlen("cat的文件不存在\n"));
         return;
     }
-    printWhite("\n", strlen("\n"));
+//    printWhite("\n", strlen("\n"));
     //输出文件内容
     u16 cluster = current->cluster;
     u16 nextCluster = GetCluster(fat12, cluster);
@@ -527,7 +547,7 @@ void doLsWithParam(fileNode *current, char *path, char *preOuput) {//这里是�
     temp = current->child;
     while (temp != NULL) {
         if (temp->type == 0) {
-            char *preOuputCopy = (char *) malloc(sizeof(preOuput));
+            char *preOuputCopy = malloc((int) strlen(preOuput)+(int) strlen(temp->name)+5);
             strcpy(preOuputCopy, preOuput);
             doLsWithParam(temp, NULL, strcat(preOuputCopy, temp->name));
             free(preOuputCopy);
@@ -608,7 +628,7 @@ void doLsWithoutParam(fileNode *current, char *path, char *preOuput) {//这里�
     temp = current->child;
     while (temp != NULL) {
         if (temp->type == 0) {
-            char *preOuputCopy = (char *) malloc(sizeof(preOuput));
+            char *preOuputCopy = malloc((int) strlen(preOuput)+(int) strlen(temp->name)+5);
             strcpy(preOuputCopy, preOuput);
             doLsWithoutParam(temp, NULL, strcat(preOuputCopy, temp->name));
             free(preOuputCopy);

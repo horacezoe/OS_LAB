@@ -1,4 +1,12 @@
 C:\WINDOWS\system32\wsl.exe --distribution Ubuntu-20.04 --exec /mnt/c/Users/Bruce/AppData/Local/Programs/CLion/bin/ttyfix /bin/bash -c "export CLION_IDE=TRUE && export CMAKE_COLOR_DIAGNOSTICS=ON && export JETBRAINS_IDE=TRUE && cd /home/horacezhu/OS/Lab2/cmake-build-debug && /usr/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /home/horacezhu/OS/Lab2 -B /home/horacezhu/OS/Lab2/cmake-build-debug"
+-- The C compiler identification is GNU 9.4.0
+-- Check for working C compiler: /usr/bin/cc
+-- Check for working C compiler: /usr/bin/cc -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
 -- Configuring done
 -- Generating done
 -- Build files have been written to: /home/horacezhu/OS/Lab2/cmake-build-debug
+无法确定目标 Lab2 的产品文件路径。运行和调试将不可用。
